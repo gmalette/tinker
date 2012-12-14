@@ -1,5 +1,3 @@
-# Based on https://gist.github.com/315357/8d83746e3d919648e246726573ab2f894721fee6
-# and the 'call anything' method
 module Tinker::Evented
   def on(event_name, *callbacks, &block)
     raise ArgumentError, 'No callbacks given' unless callbacks.any? || block
