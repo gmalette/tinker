@@ -15,7 +15,7 @@ class Tinker::Client
   end
 
   def send(message)
-    @socket.send(message)
+    Tinker.application.message_queue << Tinker::Network::Message.new(:body => message, :socket => socket)
   end
 
 end

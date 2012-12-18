@@ -27,7 +27,7 @@ module Tinker::Context
       client.join(self)
 
       env = Tinker::Event::Environment.new :context => self, :client => client
-      dispatch Event.new(:environment => env, :name => "client.join")
+      dispatch Tinker::Event.new(:environment => env, :name => "client.join")
     end
 
     def remove_client(client)
@@ -35,24 +35,29 @@ module Tinker::Context
       client.leave(self)
 
       env = Tinker::Event::Environment.new :context => self, :client => client
-      dispatch Event.new(:environment => env, :name => "client.leave")
+      dispatch Tinker::Event.new(:environment => env, :name => "client.leave")
+    end
+
+    def dispatch(event)
+      event.environment = Tinker::Event::Environment.new(:client => event.environment.client, :context => self)
+      super(event)
     end
 
     private
     def initialize_listeners
-      self.class.binding_definitions.each do |name, args|
+      self.class.ancestors_binding_definitions.each do |name, args|
         on name, *args
       end
     end
   end
 
   module ClassMethods
-    attr_reader :contexts
-
-    contexts ||= {}
-
     def binding_definitions
       @binding_definitions ||= []
+    end
+
+    def ancestors_binding_definitions
+      ancestors.select{|klass| klass < Tinker::Context}.reduce([]){|arr, klass| arr.push *klass.binding_definitions }
     end
   
     def on event_name, *args

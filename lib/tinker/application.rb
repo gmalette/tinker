@@ -9,6 +9,6 @@ class Tinker::Application < Tinker::Engine
   end
 
   def on_client_join(event)
-    add_client(client)
+    add_client(event.environment.client)
   end
 end
