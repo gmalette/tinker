@@ -5,7 +5,14 @@ module Tinker::Evented
     _dispatchers[event_name].push(&block) if block
   end
 
-  def dispatch event
+  # Internal: Disatches an event
+  #
+  # event - The event to dispatch to the listeners
+  #
+  # Examples
+  #
+  #     @room.dispatch(Event.new(:name => "event_name", :params => {:param1 => "value1"}))
+  def dispatch(event)
     _dispatchers[event.name].each do |callback|
       event_callback event, callback
     end
