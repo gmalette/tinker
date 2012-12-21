@@ -1,10 +1,10 @@
 class Tinker::Event
   attr_accessor :environment, :params, :name
 
-  def initialize( attributes = {} )
-    [:environment, :params, :name].each do |attribute|
-      instance_variable_set("@#{attribute}", attributes[attribute])
-    end
+  def initialize(name, environment, params = {})
+    @name = name
+    @environment = environment
+    @params = params
   end
 
   def env

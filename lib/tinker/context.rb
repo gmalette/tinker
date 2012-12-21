@@ -1,6 +1,12 @@
 module Tinker::Context
   include Tinker::Evented
 
+  class << self
+    def contexts
+      @contexts ||= {}
+    end
+  end
+
   def self.included(base)
     base.send :include, InstanceMethods
     base.send :extend, ClassMethods
@@ -14,7 +20,7 @@ module Tinker::Context
       @roster = Set.new
       
       initialize_listeners
-      self.class.contexts[@id] = self
+      Tinker::Context.contexts[@id] = self
       super
     end
 
@@ -32,21 +38,21 @@ module Tinker::Context
         remove_client(client)
       end
 
-      self.class.contexts.delete @id
+      Tinker::Context.contexts.delete @id
       self
     end
 
     # Public: Sends the message to all connected clients of this room
     #
-    # message - The message to send to the clients
+    # params - The message to send to the clients
     #
     # Examples
     #
     #     @room.broadcast({:chat => "message"})
     #
     # Returns self
-    def broadcast(message)
-      @roster.each{ |client| client.send(message) }
+    def broadcast(params)
+      @roster.each{ |client| self.send_to_client(client, params) }
       self
     end
 
@@ -60,11 +66,11 @@ module Tinker::Context
     #
     # Returns self
     def add_client(client)
-      @roster.add client
+      @roster.add(client)
       client.join(self)
 
-      env = Tinker::Event::Environment.new :context => self, :client => client
-      dispatch Tinker::Event.new(:environment => env, :name => "client.join")
+      env = Tinker::Event::Environment.new(client, self)
+      dispatch Tinker::Event.new("client.join", env)
       self
     end
 
@@ -81,14 +87,18 @@ module Tinker::Context
       @roster.delete client
       client.leave(self)
 
-      env = Tinker::Event::Environment.new :context => self, :client => client
-      dispatch Tinker::Event.new(:environment => env, :name => "client.leave")
+      env = Tinker::Event::Environment.new(client, self)
+      dispatch Tinker::Event.new("client.leave", env)
       self
+    end
+
+    def send_to_client(client, reply_to = nil, params)
+      client.send({:context => @id, :params => params, :reply_to => reply_to})
     end
 
     
     def dispatch(event)
-      event.environment = Tinker::Event::Environment.new(:client => event.environment.client, :context => self)
+      event.environment = Tinker::Event::Environment.new(event.environment.client, self)
       super(event)
     end
 
@@ -101,10 +111,6 @@ module Tinker::Context
   end
 
   module ClassMethods
-    def contexts
-      @contexts ||= {}
-    end
-
     def binding_definitions
       @binding_definitions ||= []
     end

@@ -19,6 +19,7 @@ module Tinker::Reactor
   def process_message_queue
     while @message_queue.length > 0
       message = @message_queue.pop
+      puts "Sending message: #{message.inspect}"
       message.socket.send(message.body)
     end
   end
@@ -36,7 +37,7 @@ module Tinker::Reactor
       loop do
         event = @event_queue.pop
         puts "Processing event: #{event.inspect}"
-        dispatch event
+        event.env.context.dispatch event
       end
     end
     
@@ -54,8 +55,8 @@ module Tinker::Reactor
         ws.onopen do
           puts "WebSocket Connection open (#{ip}:#{port})" 
 
-          env = Tinker::Event::Environment.new(:client => client, :context => Tinker.application)
-          @event_queue.push(Tinker::Event.new :environment => env, :name => "meta.client.join")
+          env = Tinker::Event::Environment.new(client, Tinker.application)
+          @event_queue.push(Tinker::Event.new("meta.client.join", env))
         end
 
         ws.onmessage do |message|
@@ -63,11 +64,9 @@ module Tinker::Reactor
             puts "Incoming message (#{ip}:#{port}): #{message}"
             json = JSON(message)
             
-            env = Tinker::Event::Environment.new(:client => client, :context => Tinker.application)
-            event = Tinker::Event.new :client => client, 
-                                      :name => "client.message.#{json['action']}", 
-                                      :environment => env, 
-                                      :params => json['params']
+            env = Tinker::Event::Environment.new(client, (Tinker::Context.contexts[json['context']] || Tinker.application))
+            event = Tinker::Event.new("client.message.#{json['action']}", env, json['params'])
+            
             @event_queue.push(event)
           rescue JSON::ParserError
             puts "Invalid message (#{ip}:#{port})"
@@ -78,8 +77,8 @@ module Tinker::Reactor
         ws.onclose do
           puts "WebSocket Connection closed (#{ip}:#{port})"
 
-          env = Tinker::Event::Environment.new(:client => client, :context => Tinker.application)
-          @event_queue.push(Tinker::Event.new :environment => env, :name => "meta.client.leave")
+          env = Tinker::Event::Environment.new(client, Tinker.application)
+          @event_queue.push(Tinker::Event.new("meta.client.leave", env))
           
           clients.delete ws
         end

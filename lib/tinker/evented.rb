@@ -11,7 +11,7 @@ module Tinker::Evented
   #
   # Examples
   #
-  #     @room.dispatch(Event.new(:name => "event_name", :params => {:param1 => "value1"}))
+  #     @room.dispatch(Event.new("event_name", nil, :param1 => "value1"))
   def dispatch(event)
     _dispatchers[event.name].each do |callback|
       event_callback event, callback

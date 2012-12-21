@@ -12,6 +12,7 @@ class Tinker::Engine
   def self.configure
     app = self.instance
     yield app.config if block_given?
+    app
   end
 
   class Configuration
@@ -19,7 +20,7 @@ class Tinker::Engine
 
     def initialize
       {
-        :port => "4242",
+        :port => "6202",
         :host => "0.0.0.0"
       }.each do |k, v|
         self.send("#{k}=", v)
