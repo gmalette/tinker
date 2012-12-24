@@ -49,10 +49,13 @@ module Tinker::Context
     # Examples
     #
     #     @room.broadcast({:chat => "message"})
-    #
+    # 
+    # options:
+    #   - except => list of clients to whom the message will not be sent
     # Returns self
     def broadcast(params)
-      @roster.each{ |client| self.send_to_client(client, params) }
+      except = Array(params.delete(:except)) || []
+      @roster.each{ |client| self.send_to_client(client, params) unless except.include?(client) }
       self
     end
 
@@ -71,6 +74,9 @@ module Tinker::Context
 
       env = Tinker::Event::Environment.new(client, self)
       dispatch Tinker::Event.new("client.join", env)
+
+      broadcast(:action => "meta.roster.add", :params => {:id => client.id}, :except => client)
+
       self
     end
 
@@ -93,7 +99,8 @@ module Tinker::Context
     end
 
     def send_to_client(client, reply_to = nil, params)
-      client.send({:context => @id, :params => params, :reply_to => reply_to})
+      params = params.dup.merge({:context => @id, :reply_to => reply_to})
+      client.send(params)
     end
 
     

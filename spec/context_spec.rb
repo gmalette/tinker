@@ -3,14 +3,14 @@ require 'tempfile'
 
 require 'pry'
 class MockSocket 
-  attr_reader :file
+  attr_reader :messages
 
   def initialize
-    @file = Tempfile.new("socket")
+    @messages = []
   end
 
   def send(params)
-    @file.write(params.to_json)
+    messages << params
   end
 end
 
@@ -20,12 +20,30 @@ shared_examples "a context" do
   context "#add_client" do
     before {
       context.add_client(client_1)
+      context.add_client(client_2)
     }
 
     it "sends a 'meta.context.join' message" do
-      client_1.socket.file.rewind
-      message = JSON(client_1.socket.file.read)
-      message['action'].should == 'meta.context.join'
+      message = client_1.socket.messages.first
+      message[:action].should == 'meta.context.join'
+    end
+
+    it "adds the client to the roster" do
+      context.roster.should include(client_1)
+    end
+
+    it "sends the event to other clients" do
+      message = client_1.socket.messages.last
+      message[:action].should == 'meta.roster.add'
+      message[:params][:id].should == client_2.id
+    end
+
+    it "doesn't send the event to self" do
+      client_2.socket.messages.each do |message|
+        if message[:action] == 'meta.roster.add'
+          message[:params][:id].should_not == client_2.id
+        end
+      end
     end
   end
 

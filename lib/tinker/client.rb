@@ -1,8 +1,9 @@
 class Tinker::Client
-  attr_reader :socket
+  attr_reader :socket, :id
 
   def initialize(socket)
     @socket = socket
+    @id = SecureRandom.uuid
     @contexts = Set.new
   end
 
