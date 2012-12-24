@@ -1,5 +1,4 @@
 class Tinker::Engine
-  include Singleton
   include Tinker::Context
 
   attr_reader :config
@@ -7,12 +6,23 @@ class Tinker::Engine
   def initialize
     super
     @config = Configuration.new
+    self.class.instance = self
   end
 
   def self.configure
     app = self.instance
     yield app.config if block_given?
     app
+  end
+
+  class << self
+    def instance
+      @instance || self.new
+    end
+
+    def instance=(instance)
+      @instance = instance
+    end
   end
 
   class Configuration

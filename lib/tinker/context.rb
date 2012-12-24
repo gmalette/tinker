@@ -95,6 +95,9 @@ module Tinker::Context
 
       env = Tinker::Event::Environment.new(client, self)
       dispatch Tinker::Event.new("client.leave", env)
+
+      broadcast(:action => "meta.roster.remove", :params => {:id => client.id}, :except => client)
+
       self
     end
 

@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'tempfile'
 
 require 'pry'
 class MockSocket 
@@ -23,13 +22,13 @@ shared_examples "a context" do
       context.add_client(client_2)
     }
 
+    it "adds the client to the roster" do
+      context.roster.should include(client_1)
+    end
+
     it "sends a 'meta.context.join' message" do
       message = client_1.socket.messages.first
       message[:action].should == 'meta.context.join'
-    end
-
-    it "adds the client to the roster" do
-      context.roster.should include(client_1)
     end
 
     it "sends the event to other clients" do
@@ -47,9 +46,36 @@ shared_examples "a context" do
     end
   end
 
-  it "#send_to_client"
+  context "#send_to_client" do
+    before {
+      context.send_to_client(client_1, :action => :test, :params => {})
+    }
 
-  it "#remove_client"
+    it "sends the message to the client"  do
+      client_1.socket.messages.last[:action].should == :test
+    end
+  end
+
+  context "#remove_client" do
+    before {
+      context.add_client(client_1)
+      context.add_client(client_2)
+
+      context.remove_client(client_1)
+    }
+
+    it "removes the client from the roster" do
+      context.roster.should_not include(client_1)
+    end
+
+    it "sends a message to the removed client" do
+      client_1.socket.messages.last[:action].should == "meta.context.leave"
+    end
+
+    it "sends a message to the other clients" do
+      client_2.socket.messages.last[:action].should == "meta.roster.remove"
+    end
+  end
 
   it "#release"
 
@@ -72,7 +98,7 @@ describe "Context" do
   end
 
   context "Application" do
-    let(:context) { Tinker::Application.instance }
+    let(:context) { Tinker::Application.new }
 
     it_behaves_like "a context"
   end
