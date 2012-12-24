@@ -1,4 +1,5 @@
 class Tinker::Engine
+  include Singleton
   include Tinker::Context
 
   attr_reader :config
@@ -6,7 +7,6 @@ class Tinker::Engine
   def initialize
     super
     @config = Configuration.new
-    self.class.instance = self
   end
 
   def self.configure
@@ -15,14 +15,11 @@ class Tinker::Engine
     app
   end
 
-  class << self
-    def instance
-      @instance || self.new
-    end
-
-    def instance=(instance)
-      @instance = instance
-    end
+  def self.release_singleton
+    @singleton__mutex__.synchronize {
+      @singleton__instance__ = nil
+    }
+    self
   end
 
   class Configuration

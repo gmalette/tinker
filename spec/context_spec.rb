@@ -98,7 +98,8 @@ describe "Context" do
   end
 
   context "Application" do
-    let(:context) { Tinker::Application.new }
+    before { Tinker::Application.release_singleton }
+    let(:context) { Tinker::Application.instance }
 
     it_behaves_like "a context"
   end
