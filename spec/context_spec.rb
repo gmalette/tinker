@@ -79,7 +79,20 @@ shared_examples "a context" do
 
   it "#release"
 
-  it "#broadcast"
+  context "#broadcast" do
+    let(:message) { {:action => "test.broadcast", :params => {}, :context => context.id, :reply_to => nil } }
+
+    before {
+      context.add_client(client_1)
+      context.add_client(client_2)
+      context.broadcast(message)
+    }
+
+    it "sends the message to all clients" do
+      client_1.socket.messages.last.should == message
+      client_2.socket.messages.last.should == message
+    end
+  end
 end
 
 
