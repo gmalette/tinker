@@ -77,7 +77,20 @@ shared_examples "a context" do
     end
   end
 
-  it "#release"
+  context "#release" do
+    before {
+      context.add_client(client_1)
+      context.release
+    }
+
+    it "removes itself from the global roster" do
+      Tinker::Context.contexts.should_not include(context)
+    end
+
+    it "disconnects all clients" do
+      client_1.socket.messages.last[:action].should == "meta.context.leave"
+    end
+  end
 
   context "#broadcast" do
     let(:message) { {:action => "test.broadcast", :params => {}, :context => context.id, :reply_to => nil } }
