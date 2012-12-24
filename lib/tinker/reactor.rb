@@ -48,7 +48,9 @@ module Tinker::Reactor
       process_messages.call
 
       @websocket_server = EventMachine::WebSocket.start :host => self.config.host, :port => self.config.port do |ws|
-        client = Tinker::Client.new(ws)
+        websocket = Tinker::WebSocket.new(ws)
+        
+        client = Tinker::Client.new(websocket)
         clients[ws] = client
         port, ip = Socket.unpack_sockaddr_in(ws.get_peername)
 

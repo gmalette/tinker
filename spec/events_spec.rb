@@ -4,7 +4,7 @@ shared_examples "a callback" do
   before { context.on "event", callback }
 
   it "sends the event" do
-    event = Tinker::Event.new("event", nil)
+    event = Tinker::Event.new("event", Tinker::Event::Environment.new(nil, context))
     callback.should_receive(:call).with(event)
     context.dispatch(event)
   end
