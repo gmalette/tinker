@@ -17,6 +17,7 @@ require 'tinker/engine'
 require 'tinker/application'
 require 'tinker/room'
 require 'tinker/client'
+require 'tinker/websocket'
 require 'tinker/network/message'
 
 require 'tinker/event'

@@ -1,4 +1,6 @@
 class Tinker::WebSocket
+  attr_reader :socket
+  
   def initialize(websocket)
     @socket = websocket
   end
