@@ -16,14 +16,6 @@ module Tinker::Reactor
     @clients ||= {}
   end
 
-  def process_message_queue
-    while @message_queue.length > 0
-      message = @message_queue.pop
-      puts "Sending message: #{message.inspect}"
-      message.socket.send(message.body)
-    end
-  end
-
   def run
     return if @event_queue
 
@@ -40,12 +32,18 @@ module Tinker::Reactor
         event.env.context.dispatch event
       end
     end
+
+    @message_thread = Thread.new do
+      Thread.current.abort_on_exception = true
+      loop do
+        message = @message_queue.pop
+        puts "Sending message: #{message.inspect}"
+        message.socket.send(message.body)
+      end
+    end
     
     EventMachine.run do
       puts "Starting EventMachine on port #{self.config.port}"
-
-      process_messages = ->{ process_message_queue; EventMachine.next_tick(process_messages)}
-      process_messages.call
 
       @websocket_server = EventMachine::WebSocket.start :host => self.config.host, :port => self.config.port do |ws|
         websocket = Tinker::WebSocket.new(ws)
@@ -88,6 +86,7 @@ module Tinker::Reactor
     end
 
     @event_thread.terminate
+    @message_thread.terminate
 
   end
 
