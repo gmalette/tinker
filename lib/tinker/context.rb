@@ -18,7 +18,6 @@ module Tinker::Context
     def initialize
       @id = SecureRandom.uuid
       @roster = Set.new
-      
       initialize_listeners
       Tinker::Context.contexts[@id] = self
       super
@@ -129,7 +128,8 @@ module Tinker::Context
       ancestors.select{|klass| klass < Tinker::Context}.reduce([]){|arr, klass| arr.push *klass.binding_definitions }
     end
   
-    def on event_name, *args
+    def on event_name, *args, &block
+      args << block if block
       binding_definitions << [event_name, *args]
     end
   end

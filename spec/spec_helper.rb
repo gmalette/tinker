@@ -19,3 +19,7 @@ RSpec.configure do |config|
   #     --seed 1234
   config.order = 'random'
 end
+
+class SynchronizedContext < Tinker::Room
+  include Tinker::Context::Roster::Synchronize
+end

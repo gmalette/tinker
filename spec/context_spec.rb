@@ -110,23 +110,41 @@ end
 
 
 
-describe "Context" do
+describe "Tinker::Context" do
   let(:socket_1) { MockSocket.new }
   let(:client_1) { Tinker::Client.new(socket_1) }
 
   let(:socket_2) { MockSocket.new }
   let(:client_2) { Tinker::Client.new(socket_2) }
 
-  context "Room" do
+  context "Tinker::Room" do
     let(:context) { Tinker::Room.new }
 
     it_behaves_like "a context"
   end
 
-  context "Application" do
+  context "Tinker::Application" do
     before { Tinker::Application.release_singleton }
     let(:context) { Tinker::Application.instance }
 
     it_behaves_like "a context"
+  end
+
+  describe "Tinker::Context::Roster::Synchronized" do
+    let(:context) { SynchronizedContext.new }
+    before {
+      context.add_client(client_1)
+      context.add_client(client_2)
+    }
+
+    it "sends the roster to all clients upon connection" do
+      message = client_2.socket.messages.detect{ |m| m[:action] == "meta.roster.synchronize" }
+      message[:action].should == "meta.roster.synchronize"
+      
+      message[:params][:roster].should have(2).members
+      
+       message[:params][:roster].select{ |c| c.id == client_1.id }.should have(1).member
+       message[:params][:roster].select{ |c| c.id == client_2.id }.should have(1).member
+    end
   end
 end

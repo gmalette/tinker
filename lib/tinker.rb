@@ -11,6 +11,7 @@ require 'pry'
 
 require 'tinker/evented'
 require 'tinker/context'
+require 'tinker/context/roster'
 
 require 'tinker/reactor'
 require 'tinker/engine'
