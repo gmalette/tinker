@@ -9,6 +9,8 @@ require 'securerandom'
 
 require 'pry'
 
+require 'tinker/monkey_patch'
+
 require 'tinker/evented'
 require 'tinker/context'
 require 'tinker/context/roster'
