@@ -9,13 +9,16 @@ shared_examples "a callback" do
     context.dispatch(event)
   end
 
-  it "#every" do
-    EM.run {
-      callback.should_receive(:call)
-      context.every(0.01, callback) do
-        EM.stop
-      end
-    }
+  describe "#every" do
+    it "is called periodically" do
+      EM.run {
+        count = 0
+        callback.should_receive(:call).at_least(2).times
+        context.every(0.01, callback) do
+          EM.stop if (count += 1) >= 2
+        end
+      }
+    end
   end
 end
 
