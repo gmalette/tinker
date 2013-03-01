@@ -127,12 +127,15 @@ module Tinker::Context
     def ancestors_binding_definitions
       ancestors.select{|klass| klass < Tinker::Context}.reduce([]){|arr, klass| arr.push *klass.binding_definitions }
     end
-  
-    def on event_name, *args, &block
-      args << block if block
-      binding_definitions.push(Proc.new{
-        self.on(event_name, *args)
-      })
+    
+    %w(on every).each do |m|
+      define_method(m.to_sym) do |*args, &block|
+        args << block if block
+        binding_definitions.push(Proc.new{
+          self.send(m, *args)
+        })
+      end
     end
+
   end
 end

@@ -8,6 +8,15 @@ shared_examples "a callback" do
     callback.should_receive(:call).with(event)
     context.dispatch(event)
   end
+
+  it "#every" do
+    EM.run {
+      callback.should_receive(:call)
+      context.every(0.01, callback) do
+        EM.stop
+      end
+    }
+  end
 end
 
 describe "Evented" do

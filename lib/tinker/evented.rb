@@ -5,6 +5,17 @@ module Tinker::Evented
     _dispatchers[event_name].push(&block) if block
   end
 
+  def every(time, *callbacks, &block)
+    callbacks << block if block
+    EventMachine.add_periodic_timer(time) do
+      env = Tinker::Event::Environment.new(nil, self)
+      event = Tinker::Event.new("meta.timer.tick", env)
+      callbacks.each do |callback|
+        event_callback(event, callback)
+      end
+    end
+  end
+
   # Internal: Disatches an event
   #
   # event - The event to dispatch to the listeners
