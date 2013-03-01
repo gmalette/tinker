@@ -38,10 +38,4 @@ describe "Evented" do
 
     it_behaves_like "a callback"
   end
-
-  context "with a class" do
-    let(:callback) { Tester }
-
-    it_behaves_like "a callback"
-  end
 end
