@@ -113,8 +113,8 @@ module Tinker::Context
 
     private
     def initialize_listeners
-      self.class.ancestors_binding_definitions.each do |name, args|
-        on name, *args
+      self.class.ancestors_binding_definitions.each do |block|
+        self.instance_eval &block
       end
     end
   end
@@ -130,7 +130,9 @@ module Tinker::Context
   
     def on event_name, *args, &block
       args << block if block
-      binding_definitions << [event_name, *args]
+      binding_definitions.push(Proc.new{
+        self.on(event_name, *args)
+      })
     end
   end
 end

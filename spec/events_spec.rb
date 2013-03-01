@@ -11,6 +11,11 @@ shared_examples "a callback" do
 end
 
 describe "Evented" do
+  class Tester
+    def call(*params)
+    end
+  end
+
   let(:context) { Tinker::Room.new }
 
   context "with a Proc" do
@@ -20,12 +25,13 @@ describe "Evented" do
   end
 
   context "with a class instance" do
-    class Tester
-      def call(*params)
-      end
-    end
-
     let(:callback) { Tester.new }
+
+    it_behaves_like "a callback"
+  end
+
+  context "with a class" do
+    let(:callback) { Tester }
 
     it_behaves_like "a callback"
   end
