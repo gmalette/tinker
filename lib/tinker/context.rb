@@ -30,7 +30,7 @@ module Tinker::Context
     # Examples
     #
     #     @room.release
-    # 
+    #
     # Returns self
     def release
       @roster.each do |client|
@@ -48,7 +48,7 @@ module Tinker::Context
     # Examples
     #
     #     @room.broadcast({:chat => "message"})
-    # 
+    #
     # options:
     #   - except => list of clients to whom the message will not be sent
     # Returns self
@@ -105,7 +105,7 @@ module Tinker::Context
       client.send(params)
     end
 
-    
+
     def dispatch(event)
       event.environment = Tinker::Event::Environment.new(event.environment.client, self)
       super(event)
@@ -127,7 +127,7 @@ module Tinker::Context
     def ancestors_binding_definitions
       ancestors.select{|klass| klass < Tinker::Context}.reduce([]){|arr, klass| arr.push *klass.binding_definitions }
     end
-    
+
     %w(on every).each do |m|
       define_method(m.to_sym) do |*args, &block|
         args << block if block

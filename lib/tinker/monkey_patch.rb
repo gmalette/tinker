@@ -1,5 +1,5 @@
 class Set
-  def to_json
-    to_a.to_json
+  def to_json(*a)
+    to_a.to_json(*a)
   end
 end

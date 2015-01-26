@@ -4,8 +4,8 @@ require File.expand_path('../lib/tinker/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["Guillaume Malette"]
   gem.email         = ["gmalette@gmail.com"]
-  gem.description   = %q{TODO: Write a gem description}
-  gem.summary       = %q{TODO: Write a gem summary}
+  gem.description   = %q{Tinker is a prototype for realtime games}
+  gem.summary       = %q{Tinker is a prototype for realtime games}
   gem.homepage      = ""
 
   gem.files         = `git ls-files`.split($\)
@@ -17,8 +17,7 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "activesupport"
   gem.add_dependency "em-websocket"
-  gem.add_dependency "pry"
-  
+  gem.add_dependency "rake"
 
   gem.add_development_dependency "rspec"
   gem.add_development_dependency "mocha"

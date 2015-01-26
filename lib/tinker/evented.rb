@@ -29,7 +29,8 @@ module Tinker::Evented
     end
   end
 
-  protected 
+  protected
+
   def event_callback(event, callback)
     if callback.respond_to? :call
       callback.call(event)

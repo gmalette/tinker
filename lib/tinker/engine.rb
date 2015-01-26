@@ -2,17 +2,19 @@ class Tinker::Engine
   include Singleton
   include Tinker::Context
 
-  attr_reader :config
+  attr_accessor :config
 
   def initialize
     super
-    @config = Configuration.new
   end
 
   def self.configure
-    app = self.instance
-    yield app.config if block_given?
-    app
+    @singleton__mutex__.synchronize {
+      app = self.send(:allocate)
+      app.config = Configuration.new
+      yield app.config if block_given?
+      @singleton__instance__ = app
+    }
   end
 
   def self.release_singleton
@@ -23,12 +25,12 @@ class Tinker::Engine
   end
 
   class Configuration
-  	attr_accessor :port, :host
+    attr_accessor :port, :host
 
     def initialize
       {
-        :port => "6202",
-        :host => "0.0.0.0"
+        port: "6202",
+        host: "0.0.0.0"
       }.each do |k, v|
         self.send("#{k}=", v)
       end

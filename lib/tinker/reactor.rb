@@ -28,7 +28,7 @@ module Tinker::Reactor
       Thread.current.abort_on_exception = true
       loop do
         event = @event_queue.pop
-        puts "Processing event: #{event.inspect}"
+        # puts "Processing event: #{event.inspect}"
         event.env.context.dispatch event
       end
     end
@@ -37,15 +37,17 @@ module Tinker::Reactor
       Thread.current.abort_on_exception = true
       loop do
         message = @message_queue.pop
-        puts "Sending message: #{message.inspect}"
+        # puts "Sending message: #{message.inspect}"
         message.socket.send(message.body)
       end
     end
 
     EventMachine.run do
+      Backro::Application.instance.send(:initialize)
+
       puts "Starting EventMachine on port #{self.config.port}"
 
-      @websocket_server = EventMachine::WebSocket.start :host => self.config.host, :port => self.config.port do |ws|
+      @websocket_server = EventMachine::start_server(self.config.host, self.config.port, EventMachine::WebSocket::Connection, {}) do |ws|
         websocket = Tinker::WebSocket.new(ws)
 
         client = Tinker::Client.new(websocket)
@@ -61,7 +63,7 @@ module Tinker::Reactor
 
         ws.onmessage do |message|
           begin
-            puts "Incoming message (#{ip}:#{port}): #{message}"
+            # puts "Incoming message (#{ip}:#{port}): #{message}"
             json = JSON(message)
 
             env = Tinker::Event::Environment.new(client, (Tinker::Context.contexts[json['context']] || Tinker.application))
@@ -69,7 +71,7 @@ module Tinker::Reactor
 
             @event_queue.push(event)
           rescue JSON::ParserError
-            puts "Invalid message (#{ip}:#{port})"
+            # puts "Invalid message (#{ip}:#{port})"
             ws.send({:type => :error, :action => :message, :errors => ["Invalid message format"]}.to_json)
           end
         end
