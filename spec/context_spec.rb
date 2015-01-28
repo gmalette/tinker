@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 require 'pry'
-class MockSocket 
+class MockSocket
   attr_reader :messages
 
   def initialize
@@ -15,7 +15,7 @@ end
 
 
 shared_examples "a context" do
-  
+
   context "#add_client" do
     before {
       context.add_client(client_1)
@@ -140,9 +140,9 @@ describe "Tinker::Context" do
     it "sends the roster to all clients upon connection" do
       message = client_2.socket.messages.detect{ |m| m[:action] == "meta.roster.synchronize" }
       message[:action].should == "meta.roster.synchronize"
-      
+
       message[:params][:roster].should have(2).members
-      
+
        message[:params][:roster].select{ |c| c.id == client_1.id }.should have(1).member
        message[:params][:roster].select{ |c| c.id == client_2.id }.should have(1).member
     end

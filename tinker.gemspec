@@ -16,8 +16,9 @@ Gem::Specification.new do |gem|
   gem.version       = Tinker::VERSION
 
   gem.add_dependency "activesupport"
-  gem.add_dependency "em-websocket"
   gem.add_dependency "rake"
+  gem.add_dependency "em-websocket", '~> 0.3.8'
+  gem.add_dependency "thin-em-websocket-gmalette"
 
   gem.add_development_dependency "rspec"
   gem.add_development_dependency "mocha"

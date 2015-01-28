@@ -2,10 +2,10 @@ require "tinker/version"
 
 require 'singleton'
 require 'socket'
-require 'em-websocket'
 require 'json'
 require 'set'
 require 'securerandom'
+require 'em-websocket'
 
 require 'pry'
 

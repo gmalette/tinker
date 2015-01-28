@@ -16,7 +16,7 @@ module Tinker::Reactor
     @clients ||= {}
   end
 
-  def run
+  def prepare
     return if @event_queue
 
     trap_sigint
@@ -42,54 +42,50 @@ module Tinker::Reactor
       end
     end
 
-    EventMachine.run do
-      Backro::Application.instance.send(:initialize)
+    Backro::Application.instance.send(:initialize)
+  end
 
-      puts "Starting EventMachine on port #{self.config.port}"
+  def connect(ws)
+    websocket = Tinker::WebSocket.new(ws)
 
-      @websocket_server = EventMachine::start_server(self.config.host, self.config.port, EventMachine::WebSocket::Connection, {}) do |ws|
-        websocket = Tinker::WebSocket.new(ws)
+    client = Tinker::Client.new(websocket)
+    clients[ws] = client
 
-        client = Tinker::Client.new(websocket)
-        clients[ws] = client
-        port, ip = Socket.unpack_sockaddr_in(ws.get_peername)
+    ws.onopen do
+      puts "WebSocket Connection open"
 
-        ws.onopen do
-          puts "WebSocket Connection open (#{ip}:#{port})"
+      env = Tinker::Event::Environment.new(client, Tinker.application)
+      @event_queue.push(Tinker::Event.new("meta.client.join", env))
+    end
 
-          env = Tinker::Event::Environment.new(client, Tinker.application)
-          @event_queue.push(Tinker::Event.new("meta.client.join", env))
-        end
+    ws.onmessage do |message|
+      begin
+        # puts "Incoming message: #{message}"
+        json = JSON(message)
 
-        ws.onmessage do |message|
-          begin
-            # puts "Incoming message (#{ip}:#{port}): #{message}"
-            json = JSON(message)
+        env = Tinker::Event::Environment.new(client, (Tinker::Context.contexts[json['context']] || Tinker.application))
+        event = Tinker::Event.new("client.message.#{json['action']}", env, json['params'])
 
-            env = Tinker::Event::Environment.new(client, (Tinker::Context.contexts[json['context']] || Tinker.application))
-            event = Tinker::Event.new("client.message.#{json['action']}", env, json['params'])
-
-            @event_queue.push(event)
-          rescue JSON::ParserError
-            # puts "Invalid message (#{ip}:#{port})"
-            ws.send({:type => :error, :action => :message, :errors => ["Invalid message format"]}.to_json)
-          end
-        end
-
-        ws.onclose do
-          puts "WebSocket Connection closed (#{ip}:#{port})"
-
-          env = Tinker::Event::Environment.new(client, Tinker.application)
-          @event_queue.push(Tinker::Event.new("meta.client.leave", env))
-
-          clients.delete ws
-        end
+        @event_queue.push(event)
+      rescue JSON::ParserError
+        # puts "Invalid message"
+        ws.send({:type => :error, :action => :message, :errors => ["Invalid message format"]}.to_json)
       end
     end
 
+    ws.onclose do
+      puts "WebSocket Connection closed"
+
+      env = Tinker::Event::Environment.new(client, Tinker.application)
+      @event_queue.push(Tinker::Event.new("meta.client.leave", env))
+
+      clients.delete ws
+    end
+  end
+
+  def kill
     @event_thread.terminate
     @message_thread.terminate
-
   end
 
   private
